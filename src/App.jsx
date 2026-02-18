@@ -3,26 +3,41 @@ import UnderweightMen from './assets/Underweight_men.jpg';
 import UnderweightWomen from './assets/Underweight_women.jpg';
 import ObeseMen from './assets/Obese_men.jpg';
 import ObeseWomen from './assets/Obese_women.jpg';
+import RegularweightMen from './assets/Regularweight_men.jpg';
+import RegularweightWomen from './assets/Regularweight_women.jpg';
 import './App.css';
 
 function App() {
   const [page, setPage] = useState('form');
+  const [name, setName] = useState('');
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
+  const [heightUnit, setHeightUnit] = useState('cm'); // 'cm' or 'inch'
+  const [weightUnit, setWeightUnit] = useState('kg'); // 'kg' or 'lb'
   const [gender, setGender] = useState('male');
   const [bmiData, setBmiData] = useState(null);
 
   const handleCalculate = (e) => {
     e.preventDefault();
-    const bmi = (weight / ((height / 100) ** 2)).toFixed(2);
+
+    // Convert height to meters
+    let heightInMeters = heightUnit === 'cm' ? height / 100 : (height * 2.54) / 100;
+
+    // Convert weight to kg
+    let weightInKg = weightUnit === 'kg' ? weight : weight * 0.453592;
+
+    const bmi = (weightInKg / (heightInMeters ** 2)).toFixed(2);
     setBmiData({ bmi, gender });
     setPage('result');
   };
 
   const handleRecalculate = () => {
     setPage('form');
+    setName('');
     setWeight('');
     setHeight('');
+    setHeightUnit('cm');
+    setWeightUnit('kg');
     setGender('male');
     setBmiData(null);
   };
@@ -40,6 +55,7 @@ function App() {
       image = gender === 'male' ? ObeseMen : ObeseWomen;
     } else {
       category = 'Normal weight';
+      image = gender === 'male' ? RegularweightMen : RegularweightWomen;
     }
   }
 
@@ -50,25 +66,46 @@ function App() {
       {page === 'form' && (
         <form onSubmit={handleCalculate} className="bmi-form">
           <label>
-            Weight (kg):
+            Name:
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </label>
+          <br />
+
+          <label>
+            Weight:
             <input
               type="number"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               required
             />
+            <select value={weightUnit} onChange={(e) => setWeightUnit(e.target.value)}>
+              <option value="kg">kg</option>
+              <option value="lb">lb</option>
+            </select>
           </label>
           <br />
+
           <label>
-            Height (cm):
+            Height:
             <input
               type="number"
               value={height}
               onChange={(e) => setHeight(e.target.value)}
               required
             />
+            <select value={heightUnit} onChange={(e) => setHeightUnit(e.target.value)}>
+              <option value="cm">cm</option>
+              <option value="inch">inch</option>
+            </select>
           </label>
           <br />
+
           <label>
             Gender:
             <select value={gender} onChange={(e) => setGender(e.target.value)}>
@@ -77,13 +114,14 @@ function App() {
             </select>
           </label>
           <br />
+
           <button type="submit">Calculate BMI</button>
         </form>
       )}
 
       {page === 'result' && bmiData && (
         <div className="result">
-          <p>Your BMI: {bmiData.bmi}</p>
+          <p>{name}, Your BMI is {bmiData.bmi}</p>
           <p>Category: {category}</p>
           {image && <img src={image} alt={category} style={{ width: '200px', marginTop: '20px' }} />}
           <br />
